@@ -20,7 +20,9 @@
 			"nl.orbinuity.overload.OverloadSMP"
 		]
 	},
-	"mixins": [],
+	"mixins": [
+		"overload.mixins.json"
+	],
 	"depends": {
 		"fabricloader": ">=0.19.3",
 		"minecraft": "~1.21.11",
