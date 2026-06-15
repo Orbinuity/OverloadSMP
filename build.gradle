@@ -11,6 +11,13 @@ repositories {
 		name = "TerraformersMC"
 		url = "https://maven.terraformersmc.com/releases/"
 	}
+
+	maven {
+		url "https://cursemaven.com"
+		content {
+			includeGroup "curse.maven"
+		}
+	}
 }
 
 dependencies {
@@ -23,6 +30,11 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
 	modLocalRuntime "com.terraformersmc:modmenu:17.0.0"
+
+	modLocalRuntime "curse.maven:ftb-library-fabric-438495:7718925"
+	modLocalRuntime "curse.maven:architectury-api-419699:7339256"
+
+	implementation "de.marhali:json5-java:3.0.0"
 }
 
 processResources {
