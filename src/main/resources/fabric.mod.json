@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "overload",
+	"version": "${version}",
+	"name": "Overload SMP",
+	"description": "This mod adds some stuff and tools for the Overload SMP.",
+	"authors": [
+		"Orbinuity"
+	],
+	"contact": {
+		"homepage": "https://orbinuity.nl/project#OverloadSMP",
+		"sources": "https://github.com/Orbinuity/OverloadSMP",
+		"issues": "https://github.com/Orbinuity/OverloadSMP/issues"
+	},
+	"license": "BSD 3-Clause",
+	"icon": "icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"nl.orbinuity.overload.OverloadSMP"
+		]
+	},
+	"mixins": [],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
