@@ -62,7 +62,7 @@ jobs:
 
       # 4. Create the Release if it doesn't exist
       - name: Create GitHub Release
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps:check_release.outputs.EXISTS == 'false'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.check_release.outputs.EXISTS == 'false'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
