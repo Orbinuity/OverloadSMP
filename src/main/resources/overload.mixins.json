@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "nl.orbinuity.overload.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"mixins": [
+		"SplashOverlayMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
