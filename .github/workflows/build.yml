@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     
-    # Give GitHub Actions permission to create releases and commit badge updates
+    # 1. Give GitHub Actions permission to create releases
     permissions:
       contents: write
 
@@ -25,51 +25,6 @@ jobs:
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
-      # 1. Extract the project version from Gradle early
-      - name: Extract project version
-        run: |
-          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      # 2. Find and correct version badges in every README.md file
-      - name: Check and fix README version badges
-        shell: python
-        run: |
-          import os, re
-
-          version = os.environ['VERSION']
-          
-          # Regex to match your specific shields.io badge structure regardless of what old version is inside it
-          pattern = r'\[\!\[Version\]\(https://img\.shields\.io/badge/Version-[^)]+-orange\)\]\(https://github\.com/Orbinuity/OverloadSMP/releases/v[^)]+\)'
-          replacement = f'[![Version](https://img.shields.io/badge/Version-{version}-orange)](https://github.com/Orbinuity/OverloadSMP/releases/v{version})'
-
-          for root, dirs, files in os.walk('.'):
-              for file in files:
-                  if file.lower() == 'readme.md':
-                      filepath = os.path.join(root, file)
-                      with open(filepath, 'r', encoding='utf-8') as f:
-                          content = f.read()
-                      
-                      new_content = re.sub(pattern, replacement, content)
-                      if content != new_content:
-                          print(f"Fixing outdated badge in: {filepath}")
-                          with open(filepath, 'w', encoding='utf-8') as f:
-                              f.write(new_content)
-
-      # 3. Commit and push changes back if any README files were altered
-      - name: Commit and push badge updates
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add "**/README.md"
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: auto-update README version badges to v${{ env.VERSION }}"
-            git push || echo "Push failed (likely a fork PR), proceeding with build anyway."
-          else
-            echo "All README version badges are already up to date!"
-          fi
-
-      # 4. Proceed with building the project
       - name: build
         run: ./gradlew build
 
@@ -83,7 +38,15 @@ jobs:
       # AUTOMATIC RELEASE STEPS
       # -----------------------------------------------------------------
 
-      # 5. Check if the release already exists
+      # 2. Extract the project version from Gradle
+      - name: Extract project version
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: get_version
+        run: |
+          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      # 3. Check if the release already exists
       - name: Check if release exists
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: check_release
@@ -97,7 +60,7 @@ jobs:
             echo "EXISTS=false" >> $GITHUB_OUTPUT
           fi
 
-      # 6. Create the Release if it doesn't exist
+      # 4. Create the Release if it doesn't exist
       - name: Create GitHub Release
         if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.check_release.outputs.EXISTS == 'false'
         uses: softprops/action-gh-release@v2
