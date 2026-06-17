@@ -4,14 +4,66 @@ on: [pull_request, push]
 jobs:
   build:
     runs-on: ubuntu-24.04
-    
-    # 1. Give GitHub Actions permission to create releases
+
     permissions:
       contents: write
 
     steps:
       - name: checkout repository
         uses: actions/checkout@v6
+
+      - name: Extract project version
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: get_version
+        run: |
+          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Check if release exists
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        id: check_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "v${{ env.VERSION }}" >/dev/null 2>&1; then
+            echo "EXISTS=true" >> $GITHUB_OUTPUT
+            echo "::warning::Release v${{ env.VERSION }} already exists! You probably forgot to update the version in your build.gradle."
+          else
+            echo "EXISTS=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Validate README.md version badges
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          # 1. Define the expected version
+          EXPECTED_VERSION="${{ env.VERSION }}"
+          FAILED_FILES=()
+
+          # 2. Find all README.md files
+          while IFS= read -r file; do
+            # 3. Check if the file contains the specific badge pattern
+            # Matches: [![Version](https://img.shields.io/badge/Version-X.Y-orange)](https://github.com/Orbinuity/OverloadSMP/releases/vX.Y)
+            if grep -q "img.shields.io/badge/Version-" "$file"; then
+              
+              # Extract the version from the URL (the part after 'releases/v' or 'Version-')
+              # This regex looks for the version in the badge URL
+              CURRENT_VERSION=$(grep -oE "Version-[0-9]+\.[0-9]+" "$file" | cut -d'-' -f2)
+              
+              if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
+                echo "::error file=$file::Version mismatch in $file. Found $CURRENT_VERSION, expected $EXPECTED_VERSION"
+                FAILED_FILES+=("$file")
+              fi
+            fi
+          done < <(find . -name "README.md")
+
+          # 4. If there were failures, exit 1 to stop the build
+          if [ ${#FAILED_FILES[@]} -ne 0 ]; then
+            echo "::error::The following README.md files have incorrect version badges:"
+            for f in "${FAILED_FILES[@]}"; do
+              echo " - $f"
+            done
+            exit 1
+          fi
 
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
@@ -34,33 +86,6 @@ jobs:
           name: Artifacts
           path: build/libs/
 
-      # -----------------------------------------------------------------
-      # AUTOMATIC RELEASE STEPS
-      # -----------------------------------------------------------------
-
-      # 2. Extract the project version from Gradle
-      - name: Extract project version
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        id: get_version
-        run: |
-          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      # 3. Check if the release already exists
-      - name: Check if release exists
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        id: check_release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          if gh release view "v${{ env.VERSION }}" >/dev/null 2>&1; then
-            echo "EXISTS=true" >> $GITHUB_OUTPUT
-            echo "::warning::Release v${{ env.VERSION }} already exists! You probably forgot to update the version in your build.gradle."
-          else
-            echo "EXISTS=false" >> $GITHUB_OUTPUT
-          fi
-
-      # 4. Create the Release if it doesn't exist
       - name: Create GitHub Release
         if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.check_release.outputs.EXISTS == 'false'
         uses: softprops/action-gh-release@v2
