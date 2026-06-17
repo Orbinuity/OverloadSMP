@@ -68,6 +68,8 @@ jobs:
             fi
           done < <(find . -name "README.md")
 
+          if [ ${#FAILED_FILES[@]} -ne 0 ]; then; exit 1; fi;
+
       - name: Validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
 
