@@ -27,7 +27,8 @@ jobs:
         run: |
           if gh release view "v${{ env.VERSION }}" >/dev/null 2>&1; then
             echo "EXISTS=true" >> $GITHUB_OUTPUT
-            echo "::warning::Release v${{ env.VERSION }} already exists! You probably forgot to update the version in your build.gradle."
+            echo "::error::Release v${{ env.VERSION }} already exists! You probably forgot to update the version in your build.gradle."
+            exit 1
           else
             echo "EXISTS=false" >> $GITHUB_OUTPUT
           fi
@@ -35,18 +36,12 @@ jobs:
       - name: Validate README.md version badges
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
-          # 1. Define the expected version
           EXPECTED_VERSION="${{ env.VERSION }}"
           FAILED_FILES=()
 
-          # 2. Find all README.md files
           while IFS= read -r file; do
-            # 3. Check if the file contains the specific badge pattern
-            # Matches: [![Version](https://img.shields.io/badge/Version-X.Y-orange)](https://github.com/Orbinuity/OverloadSMP/releases/vX.Y)
             if grep -q "img.shields.io/badge/Version-" "$file"; then
-              
-              # Extract the version from the URL (the part after 'releases/v' or 'Version-')
-              # This regex looks for the version in the badge URL
+
               CURRENT_VERSION=$(grep -oE "Version-[0-9]+\.[0-9]+" "$file" | cut -d'-' -f2)
               
               if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
@@ -56,7 +51,6 @@ jobs:
             fi
           done < <(find . -name "README.md")
 
-          # 4. If there were failures, exit 1 to stop the build
           if [ ${#FAILED_FILES[@]} -ne 0 ]; then
             echo "::error::The following README.md files have incorrect version badges:"
             for f in "${FAILED_FILES[@]}"; do
