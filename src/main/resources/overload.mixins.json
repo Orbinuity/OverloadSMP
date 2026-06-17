@@ -3,7 +3,9 @@
 	"package": "nl.orbinuity.overload.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"SplashOverlayMixin"
+		"SplashOverlayMixin",
+		"PanoramaRendererMixin",
+		"TitleScreenMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
