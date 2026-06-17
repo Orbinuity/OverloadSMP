@@ -53,6 +53,7 @@ jobs:
 
           if [ ${#FAILED_FILES[@]} -ne 0 ]; then
             echo "::error::The following README.md files have incorrect version badges:"
+            sleep 0.1
             for f in "${FAILED_FILES[@]}"; do
               echo " - $f"
             done
