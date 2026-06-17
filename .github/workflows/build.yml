@@ -22,7 +22,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: get_version
         run: |
-          VERSION=$(./gradlew properties -q | grep "^version" | sed 's/version[[:space:]]*[:=][[:space:]]*//' | tr -d '[:space:]')
+          VERSION=$(./gradlew properties -q | grep -w "^version" | head -n 1 | sed 's/version[[:space:]]*[:=][[:space:]]*//' | tr -d '[:space:]')
           
           if [ -z "$VERSION" ]; then
             echo "::error::Could not extract version from Gradle."
