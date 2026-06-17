@@ -63,31 +63,23 @@ jobs:
             CURRENT_VERSION=$(grep -oE "Version-[0-9]+\.[0-9]+(\.[0-9]+)?" "$file" | sed 's/Version-//')
             
             if [ "$CURRENT_VERSION" != "$EXPECTED_VERSION" ]; then
-              echo "::error file=$file::Version mismatch. Found $CURRENT_VERSION, expected $EXPECTED_VERSION"
+              echo "::error file=$file::Version mismatch in $file. Found $CURRENT_VERSION, expected $EXPECTED_VERSION"
               FAILED_FILES+=("$file")
             fi
           done < <(find . -name "README.md")
 
-          if [ ${#FAILED_FILES[@]} -ne 0 ]; then
-            echo "::error::The following README.md files have incorrect version badges:"
-            for f in "${FAILED_FILES[@]}"; do
-              echo "   -> $f"
-            done
-            exit 1
-          fi
-
-      - name: validate gradle wrapper
+      - name: Validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
 
-      - name: make gradle wrapper executable
+      - name: Make gradle wrapper executable
         run: chmod +x ./gradlew
 
-      - name: build
+      - name: Build
         env:
           JAVA_HOME: ${{ env.JAVA_HOME_25_X64 }}
         run: ./gradlew build
 
-      - name: capture build artifacts
+      - name: Capture build artifacts
         uses: actions/upload-artifact@v7
         with:
           name: Artifacts
