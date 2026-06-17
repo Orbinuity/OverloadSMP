@@ -16,8 +16,17 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: get_version
         run: |
-          VERSION=$(./gradlew properties -q | grep "^version:" | awk '{print $2}')
+          # Use a more flexible approach to find the version
+          # This looks for 'version' followed by '=', ':', or space, then the value
+          VERSION=$(./gradlew properties -q | grep "^version" | sed 's/version[[:space:]]*[:=][[:space:]]*//' | tr -d '[:space:]')
+          
+          if [ -z "$VERSION" ]; then
+            echo "::error::Could not extract version from Gradle."
+            exit 1
+          fi
+          
           echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Extracted version: $VERSION"
 
       - name: Check if release exists
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
