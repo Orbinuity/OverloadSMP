@@ -9,15 +9,19 @@ jobs:
       contents: write
 
     steps:
-      - name: checkout repository
+      - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Setup JDK
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
 
       - name: Extract project version
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         id: get_version
         run: |
-          # Use a more flexible approach to find the version
-          # This looks for 'version' followed by '=', ':', or space, then the value
           VERSION=$(./gradlew properties -q | grep "^version" | sed 's/version[[:space:]]*[:=][[:space:]]*//' | tr -d '[:space:]')
           
           if [ -z "$VERSION" ]; then
@@ -75,16 +79,12 @@ jobs:
       - name: validate gradle wrapper
         uses: gradle/actions/wrapper-validation@v6
 
-      - name: setup jdk
-        uses: actions/setup-java@v5
-        with:
-          java-version: '25'
-          distribution: 'microsoft'
-
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
 
       - name: build
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_25_X64 }}
         run: ./gradlew build
 
       - name: capture build artifacts
