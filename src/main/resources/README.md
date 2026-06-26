@@ -2,8 +2,8 @@
 
 [![License](https://img.shields.io/github/license/Orbinuity/OverloadSMP)](https://orbinuity.nl/license)
 [![Last Commit](https://img.shields.io/github/last-commit/Orbinuity/OverloadSMP)](https://github.com/Orbinuity/OverloadSMP/commits)
-[![Language](https://img.shields.io/badge/Language-Java-blue)](https://www.java.com/en/)
-[![Version](https://img.shields.io/badge/Version-2.1-orange)](https://github.com/Orbinuity/OverloadSMP/releases/v2.1)
+![Language](https://img.shields.io/badge/Language-Java-blue)
+[![Version](https://img.shields.io/badge/Version-2.2-orange)](https://github.com/Orbinuity/OverloadSMP/releases/v2.2)
 [![Made By](https://img.shields.io/badge/Made%20by-Orbinuity-teal)](https://orbinuity.nl/)
 
 This mod adds some stuff and tools for the Overload SMP.
